@@ -1,0 +1,41 @@
+name: Notify site of new content
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "posts/**"
+      - "images/**"
+
+jobs:
+  trigger-rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      # Default path: Cloudflare's native Deploy Hook for the zoneer-company-site project
+      # (dashboard → project → Settings → Builds & deployments → Deploy hooks). Just a URL to
+      # POST to — no auth needed, Cloudflare rebuilds from whatever branch the hook is bound to.
+      #
+      # Set SITE_DEPLOY_HOOK_URL as a secret on *this* repo (Settings → Secrets and variables →
+      # Actions) once you've created the hook.
+      - name: Trigger Cloudflare deploy hook
+        if: ${{ vars.TRIGGER_MODE != 'dispatch' }}
+        run: curl -sf -X POST "$DEPLOY_HOOK_URL"
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets.SITE_DEPLOY_HOOK_URL }}
+
+      # Fallback path, only if the site's Cloudflare project turns out to be "Workers Builds"
+      # (no deploy hook feature there). Set the repo variable TRIGGER_MODE=dispatch and add a
+      # SITE_DISPATCH_TOKEN secret (a GitHub PAT with `repo` + `workflow` scope on
+      # zoneer-dev/zoneer-company-site) to use this instead. The site repo must have a workflow
+      # listening for `repository_dispatch` with type `content-published` (see its
+      # .github/workflows/deploy.yml).
+      - name: Dispatch rebuild to site repo
+        if: ${{ vars.TRIGGER_MODE == 'dispatch' }}
+        run: |
+          curl -sf -X POST \
+            -H "Authorization: Bearer $DISPATCH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/zoneer-dev/zoneer-company-site/dispatches \
+            -d '{"event_type":"content-published"}'
+        env:
+          DISPATCH_TOKEN: ${{ secrets.SITE_DISPATCH_TOKEN }}

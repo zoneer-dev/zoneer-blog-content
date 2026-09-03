@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "zoneer-decap-oauth",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-02",
+  "vars": {
+    // Comma-separated allowlist, wildcards ok. Keep this in sync with wherever /admin is served.
+    "ALLOWED_DOMAINS": "zoneer.pro,*.zoneer-company-site.pages.dev,*.zoneer-company-site.workers.dev"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
