@@ -4,10 +4,16 @@
   "main": "src/index.js",
   "compatibility_date": "2026-09-02",
   "vars": {
-    // Comma-separated allowlist, wildcards ok. Keep this in sync with wherever /admin is served.
-    "ALLOWED_DOMAINS": "zoneer.pro,*.zoneer-company-site.pages.dev,*.zoneer-company-site.workers.dev"
+    // Comma-separated allowlist. Keep this in sync with wherever /admin is actually served — this
+    // is a security check (which origins may use this authenticator), so DON'T use a broad
+    // wildcard like "*.workers.dev" here — that would trust every Worker on Cloudflare, not just
+    // yours. zoneer-company-site deploys as a Worker (not Pages), so its preview URL is
+    // <worker-name>.<your-workers.dev-subdomain>.workers.dev — replace the placeholder below with
+    // that exact hostname (Cloudflare dashboard -> Workers & Pages -> zoneer-company-site) and
+    // redeploy (`npx wrangler deploy`).
+    "ALLOWED_DOMAINS": "zoneer.app,zoneer-company-site.zoneer.workers.dev",
   },
   "observability": {
-    "enabled": true
-  }
+    "enabled": true,
+  },
 }
